@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Secret Mission of Agent Dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #0b0821;
+    --midnight: #17103d;
+    --deep-purple: #2c1a5e;
+    --glow-blue: #5ecbff;
+    --glow-purple: #b48cff;
+    --gold: #ffd166;
+    --gold-deep: #f0a83c;
+    --parchment: #f7ecd0;
+    --ink: #2c1a3d;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: radial-gradient(ellipse at 50% 0%, var(--deep-purple) 0%, var(--midnight) 45%, var(--void) 100%);
+    color: var(--parchment);
+    font-family: 'Nunito', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition: none !important; }
+  }
+
+  h1,h2,.display{ font-family: 'Cinzel', serif; letter-spacing: 1px; }
+
+  /* ---------------- starfield ---------------- */
+  .stars{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .star{
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{ opacity: 0.15; }
+    50%{ opacity: 1; }
+  }
+  .spark{
+    position: absolute;
+    color: var(--glow-blue);
+    animation: drift-up linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes drift-up{
+    0%{ transform: translateY(110vh) translateX(0); opacity: 0; }
+    10%{ opacity: 0.8; }
+    90%{ opacity: 0.6; }
+    100%{ transform: translateY(-10vh) translateX(var(--dx,20px)); opacity: 0; }
+  }
+
+  /* ---------------- gate / envelope screen ---------------- */
+  #gate{
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  #gate.hidden{
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+  }
+
+  .eyebrow{
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 0.8rem;
+    color: var(--glow-blue);
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  .title{
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gold), var(--glow-purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 30px;
+    line-height: 1.15;
+  }
+
+  .envelope{
+    position: relative;
+    width: 200px;
+    height: 130px;
+    cursor: pointer;
+    margin: 10px auto 26px;
+    animation: hoverfloat 3s ease-in-out infinite;
+  }
+  @keyframes hoverfloat{
+    0%,100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-10px) rotate(-1deg); }
+  }
+  .env-body{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #ffe9b0, var(--parchment));
+    border-radius: 6px;
+    box-shadow: 0 0 40px rgba(94,203,255,0.45), 0 20px 40px -12px rgba(0,0,0,0.6);
+  }
+  .env-flap{
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 68px;
+    background: linear-gradient(135deg, #f0c96a, var(--gold));
+    clip-path: polygon(0 0, 100% 0, 50% 85%);
+    transform-origin: top center;
+    transition: transform 0.6s cubic-bezier(.3,1.3,.5,1);
+  }
+  .envelope.open .env-flap{
+    transform: rotateX(180deg) translateY(-4px);
+  }
+  .env-seal{
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 1.8rem;
+    z-index: 3;
+    filter: drop-shadow(0 0 10px rgba(255,209,102,0.8));
+  }
+  .env-glow{
+    position: absolute;
+    top: -20px; left: 50%;
+    width: 12px; height: 12px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, rgba(180,140,255,0.5) 60%, transparent 70%);
+    opacity: 0;
+  }
+  .envelope.open .env-glow{
+    animation: burst 0.9s ease-out forwards;
+  }
+  @keyframes burst{
+    0%{ opacity: 0; width: 12px; height: 12px; }
+    35%{ opacity: 0.9; }
+    100%{ opacity: 0; width: 300px; height: 300px; top: -140px; }
+  }
+
+  .tap-hint{
+    font-size: 0.85rem;
+    color: var(--glow-purple);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  /* ---------------- briefing modal ---------------- */
+  #briefing{
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(11,8,33,0.75);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  #briefing.visible{ opacity: 1; pointer-events: auto; }
+
+  .brief-card{
+    max-width: 480px;
+    width: 100%;
+    background: linear-gradient(180deg, #fff7e6, var(--parchment));
+    color: var(--ink);
+    border-radius: 18px;
+    padding: 38px 32px;
+    text-align: center;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7), 0 0 0 6px rgba(255,209,102,0.25);
+    transform: scale(0.9);
+    transition: transform 0.5s cubic-bezier(.2,.8,.25,1);
+  }
+  #briefing.visible .brief-card{ transform: scale(1); }
+
+  .warn{
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #b5401f;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+  .brief-card h2{ font-size: 1.5rem; margin-bottom: 14px; color: var(--ink); }
+  .brief-card p{ line-height: 1.7; margin-bottom: 10px; font-weight: 600; }
+
+  .accept-btn{
+    margin-top: 18px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 14px 34px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 12px 26px -8px rgba(240,168,60,0.7);
+    transition: transform 0.2s ease;
+  }
+  .accept-btn:hover{ transform: translateY(-2px) scale(1.03); }
+  .accept-btn:active{ transform: translateY(0) scale(0.98); }
+
+  /* ---------------- portal transition ---------------- */
+  #portal-flash{
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: radial-gradient(circle, #fff 0%, var(--glow-purple) 30%, var(--glow-blue) 55%, transparent 75%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #portal-flash.fire{
+    animation: flash 1.1s ease-out forwards;
+  }
+  @keyframes flash{
+    0%{ opacity: 0; transform: scale(0.1); }
+    40%{ opacity: 1; transform: scale(1.4); }
+    100%{ opacity: 0; transform: scale(2.6); }
+  }
+
+  /* ---------------- journey ---------------- */
+  #journey{
+    position: relative;
+    z-index: 2;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 20px 100px;
+    display: none;
+  }
+  #journey.visible{ display: block; }
+
+  .journey-intro{
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .journey-intro h1{
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .journey-intro p{ color: var(--glow-purple); font-weight: 600; }
+
+  .scene{
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(180,140,255,0.25);
+    border-radius: 20px;
+    padding: 30px 28px;
+    margin-bottom: 26px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .scene.in-view{ opacity: 1; transform: translateY(0); }
+
+  .scene-icon{
+    font-size: 2.1rem;
+    display: block;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 12px rgba(94,203,255,0.6));
+  }
+  .scene h2{
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .scene p{ line-height: 1.7; color: #ece3ff; font-weight: 600; font-size: 0.98rem; }
+
+  .step-num{
+    position: absolute;
+    top: -14px; right: 18px;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    box-shadow: 0 6px 14px -4px rgba(0,0,0,0.5);
+  }
+
+  /* ---------------- treasure finale ---------------- */
+  #finale{
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 20px 100px;
+    text-align: center;
+    display: none;
+  }
+  #finale.visible{ display: block; }
+
+  .finale-intro h2{
+    font-size: clamp(1.6rem, 5vw, 2.3rem);
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .finale-intro p{ color: var(--glow-purple); font-weight: 600; margin-bottom: 34px; }
+
+  .chest{
+    position: relative;
+    width: 200px;
+    height: 150px;
+    margin: 0 auto 20px;
+    cursor: pointer;
+    animation: hoverfloat 3.4s ease-in-out infinite;
+  }
+  .chest-lid{
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 70px;
+    background: linear-gradient(135deg, #a9631c, #7a4413);
+    border-radius: 16px 16px 4px 4px;
+    border: 4px solid var(--gold-deep);
+    transform-origin: bottom center;
+    transition: transform 0.6s cubic-bezier(.3,1.3,.5,1);
+    z-index: 2;
+  }
+  .chest.open .chest-lid{
+    transform: rotateX(120deg) translateY(10px);
+  }
+  .chest-base{
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 90px;
+    background: linear-gradient(135deg, #7a4413, #5c330d);
+    border-radius: 4px 4px 12px 12px;
+    border: 4px solid var(--gold-deep);
+  }
+  .chest-glow{
+    position: absolute;
+    top: 10px; left: 50%;
+    width: 14px; height: 14px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, rgba(255,209,102,0.6) 55%, transparent 70%);
+    opacity: 0;
+    z-index: 3;
+  }
+  .chest.open .chest-glow{
+    animation: burst 1s ease-out forwards;
+  }
+
+  .treasure-reveal{
+    margin-top: 30px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .treasure-reveal.show{ opacity: 1; transform: translateY(0); }
+
+  .loot-row{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 2rem;
+    margin-bottom: 28px;
+  }
+  .loot-row span{
+    animation: bob 2.6s ease-in-out infinite;
+  }
+  .loot-row span:nth-child(2){ animation-delay: .2s; }
+  .loot-row span:nth-child(3){ animation-delay: .4s; }
+  .loot-row span:nth-child(4){ animation-delay: .6s; }
+  .loot-row span:nth-child(5){ animation-delay: .8s; }
+  @keyframes bob{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-10px); }
+  }
+
+  .certificate{
+    background: linear-gradient(180deg, #fff7e6, var(--parchment));
+    color: var(--ink);
+    border-radius: 18px;
+    padding: 34px 28px;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.6), 0 0 0 6px rgba(255,209,102,0.3);
+    position: relative;
+  }
+  .certificate .badge{
+    font-size: 2.4rem;
+    margin-bottom: 8px;
+  }
+  .certificate h3{
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.2rem, 4vw, 1.6rem);
+    color: #b5401f;
+    margin-bottom: 14px;
+  }
+  .certificate p{
+    line-height: 1.7;
+    font-weight: 700;
+    font-size: 0.98rem;
+  }
+  .certificate .name{
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: var(--gold-deep);
+  }
+
+  @media (max-width: 480px){
+    .brief-card{ padding: 30px 22px; }
+    .scene{ padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<!-- GATE: glowing envelope -->
+<div id="gate">
+  <div class="eyebrow">Classified · Eyes Only</div>
+  <div class="title">The Secret Mission<br>of Agent Dev</div>
+  <div class="envelope" id="envelope">
+    <div class="env-glow"></div>
+    <div class="env-body"></div>
+    <div class="env-seal">🗝️</div>
+    <div class="env-flap"></div>
+  </div>
+  <div class="tap-hint">tap the envelope to reveal your mission</div>
+</div>
+
+<!-- BRIEFING MODAL -->
+<div id="briefing">
+  <div class="brief-card">
+    <div class="warn">⚠️ TOP SECRET ⚠️</div>
+    <h2>Agent Dev,</h2>
+    <p>Your mission begins <strong>NOW</strong>. The legendary Crystal Key 💎🗝️ has vanished, and the fate of the Hidden Kingdom depends on you.</p>
+    <p>You have only 24 hours to solve the mystery before the kingdom disappears forever.</p>
+    <p>Are you brave enough to accept this mission?</p>
+    <button class="accept-btn" id="acceptBtn">Accept the Mission 🌌</button>
+  </div>
+</div>
+
+<div id="portal-flash"></div>
+
+<!-- JOURNEY -->
+<div id="journey">
+  <div class="journey-intro">
+    <h1>The portal opens...</h1>
+    <p>Agent Dev steps into the Hidden Kingdom. The adventure begins.</p>
+  </div>
+
+  <div class="scene"><div class="step-num">1</div><span class="scene-icon">🧩</span><h2>The First Riddle</h2><p>A glowing stone door blocks the path, covered in swirling runes. Only a clever mind can solve the riddle carved into its surface and unlock the way forward.</p></div>
+
+  <div class="scene"><div class="step-num">2</div><span class="scene-icon">🗺️</span><h2>The Ancient Map</h2><p>Hidden inside a hollow tree, Dev finds a torn treasure map, its ink glowing faintly under the moonlight, marking a trail deep into the unknown.</p></div>
+
+  <div class="scene"><div class="step-num">3</div><span class="scene-icon">🧭</span><h2>The Magical Compass</h2><p>A shimmering compass spins to life in Dev's hand, its needle pulling toward secrets hidden just out of sight.</p></div>
+
+  <div class="scene"><div class="step-num">4</div><span class="scene-icon">🏰</span><h2>The Forgotten Castle</h2><p>Towering stone walls rise from the mist. Somewhere behind its secret doors, the castle guards a piece of the mystery.</p></div>
+
+  <div class="scene"><div class="step-num">5</div><span class="scene-icon">🌲</span><h2>The Glowing Forest</h2><p>Trees shimmer with soft blue light as Dev steps through the enchanted forest, where every rustle might hide a clue.</p></div>
+
+  <div class="scene"><div class="step-num">6</div><span class="scene-icon">🐉</span><h2>The Kind Dragon</h2><p>A great dragon guards an ancient treasure — but its eyes are gentle. Dev's courage and kindness win the dragon's trust and friendship.</p></div>
+
+  <div class="scene"><div class="step-num">7</div><span class="scene-icon">🦉</span><h2>The Wise Owl</h2><p>Perched on a glowing branch, a wise owl offers a mysterious hint, just enough to point Dev toward the next step.</p></div>
+
+  <div class="scene"><div class="step-num">8</div><span class="scene-icon">🔐</span><h2>The Secret Code</h2><p>A magical lock hums with energy. Cracking its code takes sharp thinking — and Dev is ready for the challenge.</p></div>
+
+  <div class="scene"><div class="step-num">9</div><span class="scene-icon">⚡</span><h2>Through the Portal</h2><p>A swirling gateway of light crackles open, whisking Dev to a hidden world few have ever seen.</p></div>
+
+  <div class="scene"><div class="step-num">10</div><span class="scene-icon">💎</span><h2>The Sparkling Crystals</h2><p>One by one, glowing crystals appear, each unlocking a new challenge and lighting the path forward.</p></div>
+
+  <div class="scene"><div class="step-num">11</div><span class="scene-icon">👣</span><h2>Footprints Under the Moon</h2><p>Glowing footprints appear only in moonlight, leading Dev closer and closer to the Hidden Kingdom's greatest secret.</p></div>
+</div>
+
+<!-- FINALE -->
+<div id="finale">
+  <div class="finale-intro">
+    <h2>The Lost Treasure Chest</h2>
+    <p>Agent Dev has found the Legendary Crystal Key. Tap the chest to open it.</p>
+  </div>
+
+  <div class="chest" id="chest">
+    <div class="chest-glow"></div>
+    <div class="chest-lid"></div>
+    <div class="chest-base"></div>
+  </div>
+
+  <div class="treasure-reveal" id="treasureReveal">
+    <div class="loot-row">
+      <span>🍫</span><span>🍬</span><span>🧸</span><span>⭐</span><span>👑</span>
+    </div>
+    <div class="certificate">
+      <div class="badge">⭐🕵️</div>
+      <h3>Master Detective Badge Awarded</h3>
+      <p>Congratulations, Agent Dev! You have successfully completed the Secret Mission and are officially the</p>
+      <p class="name">Greatest Young Explorer of All Time!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // starfield
+  const stars = document.getElementById('stars');
+  for (let i = 0; i < 90; i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random()*2 + 1;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.top = Math.random()*100 + 'vh';
+    s.style.animationDuration = (2 + Math.random()*3) + 's';
+    s.style.animationDelay = (Math.random()*3) + 's';
+    stars.appendChild(s);
+  }
+  const sparkIcons = ['✨','💠','⭐'];
+  for (let i = 0; i < 16; i++){
+    const sp = document.createElement('div');
+    sp.className = 'spark';
+    sp.textContent = sparkIcons[Math.floor(Math.random()*sparkIcons.length)];
+    sp.style.left = Math.random()*100 + 'vw';
+    sp.style.setProperty('--dx', (Math.random()*60-30)+'px');
+    sp.style.fontSize = (0.8 + Math.random()*1) + 'rem';
+    const dur = 12 + Math.random()*10;
+    sp.style.animationDuration = dur + 's';
+    sp.style.animationDelay = (-Math.random()*dur) + 's';
+    stars.appendChild(sp);
+  }
+
+  // envelope -> briefing
+  const envelope = document.getElementById('envelope');
+  const briefing = document.getElementById('briefing');
+  const gate = document.getElementById('gate');
+
+  envelope.addEventListener('click', () => {
+    if (envelope.classList.contains('open')) return;
+    envelope.classList.add('open');
+    setTimeout(() => briefing.classList.add('visible'), 500);
+  });
+
+  // accept mission -> portal flash -> journey
+  const acceptBtn = document.getElementById('acceptBtn');
+  const portalFlash = document.getElementById('portal-flash');
+  const journey = document.getElementById('journey');
+  const finale = document.getElementById('finale');
+
+  acceptBtn.addEventListener('click', () => {
+    briefing.classList.remove('visible');
+    gate.classList.add('hidden');
+    portalFlash.classList.add('fire');
+
+    setTimeout(() => {
+      journey.classList.add('visible');
+      finale.classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      observeScenes();
+    }, 700);
+  });
+
+  // reveal scenes as they scroll into view
+  function observeScenes(){
+    const scenes = document.querySelectorAll('.scene');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('in-view');
+      });
+    }, { threshold: 0.2 });
+    scenes.forEach(s => obs.observe(s));
+  }
+
+  // treasure chest
+  const chest = document.getElementById('chest');
+  const treasureReveal = document.getElementById('treasureReveal');
+
+  chest.addEventListener('click', () => {
+    if (chest.classList.contains('open')) return;
+    chest.classList.add('open');
+    burstConfetti();
+    setTimeout(() => treasureReveal.classList.add('show'), 400);
+  });
+
+  function burstConfetti(){
+    const colors = ['#ffd166','#b48cff','#5ecbff','#ffffff'];
+    for (let i = 0; i < 50; i++){
+      const piece = document.createElement('div');
+      piece.style.position = 'fixed';
+      piece.style.top = '55%';
+      piece.style.left = '50%';
+      piece.style.width = '8px';
+      piece.style.height = '14px';
+      piece.style.zIndex = '30';
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.pointerEvents = 'none';
+      document.body.appendChild(piece);
+
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 140 + Math.random()*260;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance - 80;
+      const rotate = Math.random()*720 - 360;
+
+      piece.animate([
+        { transform: 'translate(-50%,-50%) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${x}px, ${y}px) rotate(${rotate}deg)`, opacity: 0 }
+      ], { duration: 1100 + Math.random()*700, easing: 'cubic-bezier(.2,.8,.2,1)' });
+
+      setTimeout(() => piece.remove(), 2000);
+    }
+  }
+</script>
+
+</body>
+</html>
